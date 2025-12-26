@@ -1,8 +1,9 @@
 package ijae.xgalead00;
-
-public enum Direction {
+// enum direction representing 4 possible directions
+public enum Direction { 
 	UP, DOWN, LEFt, RIGHT
 
+	//change in x coordinate triggered by left and right
 	public int dx() {
 		switch(this) {
 			case LEFT: return -1;
@@ -10,7 +11,7 @@ public enum Direction {
 			default: return 0;
 		}
 	}
-
+	// change in y coordinate triggered by up and down 
 	public int dy() {
 		switch(this) {
 			case UP: return -1;
