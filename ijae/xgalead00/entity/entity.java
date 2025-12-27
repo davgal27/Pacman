@@ -1,10 +1,11 @@
 package ijae.xgalead00.entity;
 
-import java.awt.image.BufferedImage;
-import java.awt.Graphics2D;
-import java.aw.geom.AffineTransform;
 import ijae.xgalead00.Direction;
-
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
+import javafx.scene.image.WritableImage;
+import javafx.scene.transform.Rotate;
+import javafx.scene.SnapshotParameters;
 
 // abstract class for any entity on the bard (player or ghost) 
 // handles: position, movement, animation cycling, rotration of images
@@ -13,9 +14,9 @@ public abstract class Entity{
 	protected Direction direction = Direction.RIGHT; // starting direction
 
 	// Base image: right facing
-	protected BufferedImage[] BaseImages;
+	protected Image[] BaseImages;
 	// rotated imaages based on direction
-	protected BufferedImage[] RightImages, LeftImages, UpImages, DownImages
+	protected Image[] RightImages, LeftImages, UpImages, DownImages;
 
 	// animation state
 	protected int ImageIndex = 0; //current image in animation
@@ -32,7 +33,7 @@ public abstract class Entity{
 	// inity: initial starting y coordinate
 	// BaseImage: right facing image 
 
-	public Entity(int initx, int inity, BufferedImage[] BaseImages, int TileWidth, int TileHeight) {
+	public Entity(int initx, int inity, Image[] BaseImages, int TileWidth, int TileHeight) {
 		this.x = initx;
 		this.y = inity;
 		this.BaseImages = BaseImages;
@@ -41,9 +42,9 @@ public abstract class Entity{
 
 		//rotation of right facing images
 		RightImages = BaseImages;
-		DownImages = new BufferedImage[BaseImages.length];
-		LeftImages = new BufferedImage[BaseImages.length];
-		UpImages = new BufferedImage[BaseImages.length];
+		DownImages = new Image[BaseImages.length];
+		LeftImages = new Image[BaseImages.length];
+		UpImages = new Image[BaseImages.length];
 
 		for (int i = 0; i < BaseImages.length; i++) {
 			DownImages[i] = RotateImage(BaseImages[i], 90);
@@ -51,9 +52,66 @@ public abstract class Entity{
 			UpImages[i] = RotateImage(BaseImages[i], -90);
 		}
 	}
+	// Rotates an image by angle
+	protected Image RotateImage(Image Image, double angle) {
+		ImageView imageView = new ImageView(image);
+		imageView.setRotate(angle);
 
-	protected BufferedImage RotateImage(BufferedImage image, double angle) {
-		int ImageWidth = img.getWidth();
-		int Image
+		SnapshotParameters params = new SnapshotParameters();
+		params.setTransform(
+			new Rotate(angle, image.getWidth() / 2, image.getHeight() / 2)
+		);
+
+		WritableImage rotated = new WritableImage(
+				(int) image.getWidth(),
+				(int) image.getHeight()
+		);
+		imageView.snapshot(params, rotated);
+
+		return rotated;
 	}
+
+	//Updates animation once per game step 
+	public void UpdateAnimation() {
+		StepCounter++;
+		if (StepCounter >= AnimationSpeed) {
+			ImageIndex = (ImageIndex + 1) % BaseImages.length; // Loop
+			StepCounter = 0;
+		}
+	}
+
+	// Draw current image at entity position 
+	public void draw(GraphicsContext gc) {
+		gc.drawImage(
+			getCurrentImage(),
+			x * TileWidth,
+			y * TileHeight,
+			TileWidth,
+			TileHeight
+		);
+	}
+
+	// Return correct image based on direction
+	protected Image getCurrentImage() {
+		switch (direction) {
+			case UP: return UpImages[ImageIndex];
+			case DOWN: return DownImages[ImageIndex];
+			case LEFT: return LeftImages[ImageIndex];
+			case RIGHT: return RightImages[ImageIndex];
+			default: return RightImages[ImageIndex];
+		}
+	}
+
+	// Move entity by one tile in current direction 
+	public void move() {
+		x += direction.dx(); // add change in x to current x 
+		y += direction.dy(); // add change in y to current y 
+	}
+
+	// Getters & setters 
+	public void setDirection(Direction dir) {this.direction = dir; }
+	public Direction getDirection() { return direction; }
+	public int getX() { return x; }
+	public int getY() { return y; }
+
 }
