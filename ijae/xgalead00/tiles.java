@@ -1,4 +1,4 @@
-package ijae.xgalead00
+package ijae.xgalead00;
 
 public enum TileType {
 	WALL("wall.png"),
@@ -8,7 +8,7 @@ public enum TileType {
 	KEY("key.png");
 
 	private final String Image;
-	
+
 	TileType(String Image){
 		this.Image = Image;
 	}
@@ -17,7 +17,8 @@ public enum TileType {
 		return Image;
 	}
 
-	public boolean Accessible() {
+	public boolean IsAccessible() {
 		return this != WALL;
 	}
 }
+
