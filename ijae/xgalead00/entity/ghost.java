@@ -10,6 +10,7 @@ public class Ghost extends Entity {
 
 	public Ghost(int initx, int inity, Image[] BaseImages, int TileWidth, int TileHeight) {
 		super (initx, inity, BaseImages, TileWidth, TileHeight);
+		RotateSprite = false;
 	}
 
 	// chooses a random direction and moves if possible
