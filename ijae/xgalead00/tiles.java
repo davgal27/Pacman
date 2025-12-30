@@ -14,7 +14,12 @@ public enum TileType {
 	}
 
 	public String GetImage() { 
-		return Image;
+		return switch (this) {
+        	case WALL -> assets.WALL;
+        	case EMPTY -> assets.EMPTY;
+        	case POINT -> assets.POINT;
+        	case KEY -> assets.KEY;
+        	case GATE -> assets.GATE;    	};
 	}
 
 	public boolean IsAccessible() {

@@ -8,6 +8,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage stage) {
+        Assets.load();
         Game game = new Game(stage);
         game.start();
     }

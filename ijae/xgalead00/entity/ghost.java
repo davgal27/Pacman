@@ -1,15 +1,16 @@
 package ijae.xgalead00.entity;
 
-import ijae.xgalead00.Direction;
-import ijae.xgalead00.TileType;
+import ijae.xgalead00.direction;
+import ijae.xgalead00.tiles;
 import javafx.scene.image.Image;
 import java.util.Random;
+import ijae.xgalead00.assets;
 
 public class Ghost extends Entity {
 	private final Random random = new Random();
 
 	public Ghost(int initx, int inity, Image[] BaseImages, int TileWidth, int TileHeight) {
-		super (initx, inity, BaseImages, TileWidth, TileHeight);
+		super (initx, inity, assets.GHOST_FRAMES, TileWidth, TileHeight);
 		RotateSprite = false;
 	}
 
