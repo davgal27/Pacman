@@ -88,18 +88,26 @@ public abstract class Entity{
 			y * TileHeight,
 			TileWidth,
 			TileHeight
-		);
+	 	);
 	}
+
+	// Check if entity should rotate (pacman rotates image but ghosts dont)
+	protected boolean RotateSprite = true;
+
 
 	// Return correct image based on direction
 	protected Image getCurrentImage() {
-		switch (direction) {
+		if (!RotateSprite) {
+			return RightImages[ImageIndex];
+		}
+
+		return switch (direction) {
 			case UP: return UpImages[ImageIndex];
 			case DOWN: return DownImages[ImageIndex];
 			case LEFT: return LeftImages[ImageIndex];
 			case RIGHT: return RightImages[ImageIndex];
 			default: return RightImages[ImageIndex];
-		}
+		};
 	}
 
 	// Move entity by one tile in current direction 
