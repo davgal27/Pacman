@@ -25,27 +25,27 @@ public final class Assets {
     public static void load() {
 
         // Tiles
-        WALL  = loadImage("/assets/wall.png");
-        EMPTY = loadImage("/assets/empty.png");
-        POINT = loadImage("/assets/point.png");
-        KEY   = loadImage("/assets/key.png");
+        WALL  = loadImage("assets/wall.png");
+        EMPTY = loadImage("assets/empty.png");
+        POINT = loadImage("assets/point.png");
+        KEY   = loadImage("assets/key.png");
 
-        GATE = loadImage("/assets/gate.png");
+        GATE = loadImage("assets/gate.png");
     
         // Pacman animation frames 
         PACMAN_FRAMES = new Image[] {
-            loadImage("/assets/pacman1.png"),
-            loadImage("/assets/pacman2.png"),
-            loadImage("/assets/pacman3.png"),
-            loadImage("/assets/pacman4.png")
+            loadImage("assets/pacman1.png"),
+            loadImage("assets/pacman2.png"),
+            loadImage("assets/pacman3.png"),
+            loadImage("assets/pacman4.png")
         };
 
         // Ghost 
         GHOST_FRAMES = new Image[] {
-            loadImage("/assets/ghost1.png"),
-            loadImage("/assets/ghost2.png"),
-            loadImage("/assets/ghost3.png"),
-            loadImage("/assets/ghost4.png")
+            loadImage("assets/ghost1.png"),
+            loadImage("assets/ghost2.png"),
+            loadImage("assets/ghost3.png"),
+            loadImage("assets/ghost4.png")
         };
     }
 

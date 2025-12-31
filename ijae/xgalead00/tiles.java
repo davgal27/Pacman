@@ -1,29 +1,25 @@
 package ijae.xgalead00;
 
-public enum TileType {
-	WALL("wall.png"),
-	GATE("gate.png"),
-	EMPTY("empty.png"),
-	POINT("point.png"),
-	KEY("key.png");
+import javafx.scene.image.Image;
 
-	private final String Image;
+public enum Tiles {
+    WALL,
+    GATE,
+    EMPTY,
+    POINT,
+    KEY;
 
-	TileType(String Image){
-		this.Image = Image;
-	}
+    public Image GetImage() {
+        return switch(this) {
+            case WALL -> Assets.WALL;
+            case EMPTY -> Assets.EMPTY;
+            case POINT -> Assets.POINT;
+            case KEY -> Assets.KEY;
+            case GATE -> Assets.GATE;
+        };
+    }
 
-	public String GetImage() { 
-		return switch (this) {
-        	case WALL -> assets.WALL;
-        	case EMPTY -> assets.EMPTY;
-        	case POINT -> assets.POINT;
-        	case KEY -> assets.KEY;
-        	case GATE -> assets.GATE;    	};
-	}
-
-	public boolean IsAccessible() {
-		return this != WALL;
-	}
+    public boolean IsAccessible() {
+        return this != WALL;
+    }
 }
-

@@ -6,23 +6,20 @@ import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
-// Game controller
 public class Game {
-
     private final Stage stage;
     private final Board board;
 
     private GameView gameView;
     private MenuView menuView;
 
-    private int gameSpeed = 200; // ms per step
+    private int gameSpeed = 200;
 
     public Game(Stage stage) {
         this.stage = stage;
         this.board = new Board();
     }
 
-    // show game window
     public void start() {
         BorderPane root = new BorderPane();
 
@@ -42,7 +39,6 @@ public class Game {
         loadLevel("levels/level1.txt");
     }
 
-    // load level and start game loop
     public void loadLevel(String path) {
         try {
             board.loadLevel(path);
@@ -57,7 +53,5 @@ public class Game {
         gameView.startGameLoop(gameSpeed);
     }
 
-    public Board getBoard() {
-        return board;
-    }
+    public Board getBoard() { return board; }
 }

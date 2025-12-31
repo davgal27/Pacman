@@ -1,39 +1,41 @@
 package ijae.xgalead00.entity;
 
-import ijae.xgalead00.direction;
-import ijae.xgalead00.tiles;
+import ijae.xgalead00.Direction;
+import ijae.xgalead00.Board;
+import ijae.xgalead00.Tiles;
 import javafx.scene.image.Image;
 import java.util.Random;
-import ijae.xgalead00.assets;
+import ijae.xgalead00.Assets;
 
 public class Ghost extends Entity {
 	private final Random random = new Random();
 
-	public Ghost(int initx, int inity, Image[] BaseImages, int TileWidth, int TileHeight) {
-		super (initx, inity, assets.GHOST_FRAMES, TileWidth, TileHeight);
+	public Ghost(int initx, int inity, Image[] BaseImages) {
+		super (initx, inity, Assets.GHOST_FRAMES);
 		RotateSprite = false;
 	}
 
 	// chooses a random direction and moves if possible
-	public void update(TileType[][] board) {
-		// occasionally change direction 
-		if (random.nextInt(10) == 0) {
-			Direction = Direction.values()[random.nextInt(4)];
-		}
+	// chooses a random direction and moves if possible
+	public void update(Tiles[][] tiles) {
+	    // occasionally change direction 
+	    if (random.nextInt(10) == 0) {
+	        this.direction = Direction.values()[random.nextInt(4)];
+	    }
 
-		// move only if the next tile is accessible 
-		int nx = x + directiondx();
-		int ny = y + directiondy();
+	    // Compute next position
+	    int nx = x + direction.dx();
+	    int ny = y + direction.dy();
 
-		// bounds 
-		if (ny < 0 || ny >= board.length ||
-			nx < 0 || nx >= board[0].length) {
-			return;
-		}
+	    // Check bounds
+	    if (ny < 0 || ny >= tiles.length || nx < 0 || nx >= tiles[0].length) {
+	        return;
+	    }
 
-		// Check if tile is accessible / not a wall 
-		if (board[ny][nx].IsAccessible()){
-			move();
-		}
+	    // Only move if tile is accessible
+	    if (tiles[ny][nx].IsAccessible()) {
+	        x = nx;
+	        y = ny; // update directly instead of calling move()
+	    }
 	}
 }
