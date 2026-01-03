@@ -18,24 +18,48 @@ public class Ghost extends Entity {
 	// chooses a random direction and moves if possible
 	// chooses a random direction and moves if possible
 	public void update(Tiles[][] tiles) {
-	    // occasionally change direction 
-	    if (random.nextInt(10) == 0) {
-	        this.direction = Direction.values()[random.nextInt(4)];
-	    }
 
-	    // Compute next position
+	    // Try to move forward
 	    int nx = x + direction.dx();
 	    int ny = y + direction.dy();
 
-	    // Check bounds
-	    if (ny < 0 || ny >= tiles.length || nx < 0 || nx >= tiles[0].length) {
+	    boolean canMove =
+	        ny >= 0 && ny < tiles.length &&
+	        nx >= 0 && nx < tiles[0].length &&
+	        tiles[ny][nx].IsAccessible();
+
+	    // If blocked, choose a new valid direction
+	    if (!canMove) {
+	        chooseRandomValidDirection(tiles);
 	        return;
 	    }
 
-	    // Only move if tile is accessible
-	    if (tiles[ny][nx].IsAccessible()) {
-	        x = nx;
-	        y = ny; // update directly instead of calling move()
+	    // Occasionally change direction anyway
+	    if (random.nextInt(10) == 0) {
+	        chooseRandomValidDirection(tiles);
 	    }
+
+	    // Move
+	    x = nx;
+	    y = ny;
 	}
+	private void chooseRandomValidDirection(Tiles[][] tiles) {
+	    Direction[] dirs = Direction.values();
+
+	    for (int i = 0; i < dirs.length; i++) {
+	        Direction d = dirs[random.nextInt(dirs.length)];
+	        int nx = x + d.dx();
+	        int ny = y + d.dy();
+
+	        if (ny >= 0 && ny < tiles.length &&
+	            nx >= 0 && nx < tiles[0].length &&
+	            tiles[ny][nx].IsAccessible()) {
+
+	            direction = d;
+	            return;
+	        }
+	    }
+}
+
+
 }

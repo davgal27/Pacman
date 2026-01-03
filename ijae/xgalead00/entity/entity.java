@@ -8,6 +8,7 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.image.ImageView;
 import javafx.scene.transform.Rotate;
 import javafx.scene.SnapshotParameters;
+import javafx.scene.paint.Color;
 
 // abstract class for any entity on the board (player or ghost) 
 // handles: position, movement, animation cycling, rotation of images
@@ -49,22 +50,26 @@ public abstract class Entity {
 
     // Rotates an image by angle
     protected Image RotateImage(Image image, double angle) {
-        ImageView imageView = new ImageView(image);
-        imageView.setRotate(angle);
+	    ImageView imageView = new ImageView(image);
 
-        SnapshotParameters params = new SnapshotParameters();
-        params.setTransform(
-            new Rotate(angle, image.getWidth() / 2, image.getHeight() / 2)
-        );
+	    boolean swap = Math.abs(angle) == 90;
 
-        WritableImage rotated = new WritableImage(
-            (int) image.getWidth(),
-            (int) image.getHeight()
-        );
-        imageView.snapshot(params, rotated);
+	    int w = (int) image.getWidth();
+	    int h = (int) image.getHeight();
 
-        return rotated;
-    }
+	    WritableImage rotated = swap
+	            ? new WritableImage(h, w)
+	            : new WritableImage(w, h);
+
+	    SnapshotParameters params = new SnapshotParameters();
+	    params.setFill(Color.TRANSPARENT); // for loading images without white backgrond
+	    params.setTransform(
+	        new Rotate(angle, w / 2.0, h / 2.0)
+	    );
+
+	    imageView.snapshot(params, rotated);
+	    return rotated;
+	}
 
     // Updates animation once per game step 
     public void UpdateAnimation() {

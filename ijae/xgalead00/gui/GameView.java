@@ -91,9 +91,31 @@ public class GameView extends Pane {
         for (int y = 0; y < board.getRows(); y++) {
             for (int x = 0; x < board.getCols(); x++) {
                 Tiles tile = board.getTile(x, y);
-                Image img = tile.GetImage(); // Tiles has GetImage()
-                gc.drawImage(img, x * board.getTileWidth(), y * board.getTileHeight(), board.getTileWidth(), board.getTileHeight());
+
+                if (tile == Tiles.POINT) {
+                    Image img = tile.GetImage();
+
+                    double px =
+                        x * board.getTileWidth()
+                        + (board.getTileWidth() - img.getWidth()) / 2;
+
+                    double py =
+                        y * board.getTileHeight()
+                        + (board.getTileHeight() - img.getHeight()) / 2;
+
+                    gc.drawImage(img, px, py);
+                } else {
+                    Image img = tile.GetImage();
+                    gc.drawImage(
+                        img,
+                        x * board.getTileWidth(),
+                        y * board.getTileHeight(),
+                        board.getTileWidth(),
+                        board.getTileHeight()
+                    );
+                }
             }
         }
     }
+
 }
