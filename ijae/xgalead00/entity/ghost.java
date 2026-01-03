@@ -65,9 +65,18 @@ public class Ghost extends Entity {
 	}
 
 	// Collision with player
-    public boolean CollidesWith(Player player) {
-        return player != null && player.x == x && player.y == y;
-    }
+	public boolean CollidesWith(Player player, int prevPlayerX, int prevPlayerY, int prevGhostX, int prevGhostY) {
+	    // Current positions overlap?
+	    if ((int)player.x == (int)this.x && (int)player.y == (int)this.y) return true;
+
+	    // Check if player and ghost **crossed paths** between previous and current tick
+	    if ((int)player.x == prevGhostX && (int)player.y == prevGhostY &&
+	        prevPlayerX == (int)this.x && prevPlayerY == (int)this.y) return true;
+
+	    return false;
+	}
+
+
 
 
 }

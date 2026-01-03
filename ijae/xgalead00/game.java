@@ -73,6 +73,10 @@ public class Game {
         Player player = board.getPlayer();
         if (player == null) return;
 
+        int prevPlayerX = player.getX();
+        int prevPlayerY = player.getY();
+
+
         player.move(board.getTiles());
         player.UpdateAnimation();
         player.TileEvents(board.getTiles());
@@ -80,10 +84,13 @@ public class Game {
 
         // Ghost collision
         for (Ghost ghost : board.getGhosts()) {
+            int prevGhostX = ghost.getX();
+            int prevGhostY = ghost.getY();
             ghost.update(board.getTiles());
             ghost.UpdateAnimation();
 
-            if (ghost.CollidesWith(player) && player.isAlive()) {
+            if (ghost.CollidesWith(player, prevPlayerX, prevPlayerY, prevGhostX, prevGhostY) && player.isAlive()) {
+                gameView.redraw();
                 player.die();
                 gameLoop.stop();
 
@@ -124,5 +131,7 @@ public class Game {
     }
 
     public Board getBoard() { return board; }
+    public GameView getGameView() { return gameView; }
+
 
 }

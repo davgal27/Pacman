@@ -30,6 +30,9 @@ public class MenuView extends HBox {
             game.setGameSpeed(newVal.intValue())
         );
 
+        // Make sure the game view regains focus after interacting
+        speedSlider.setOnMouseReleased(e -> game.getGameView().requestFocus());
+
         // Levels dropdown
         ComboBox<String> levelDropdown = new ComboBox<>();
         levelDropdown.getItems().addAll(
@@ -39,6 +42,7 @@ public class MenuView extends HBox {
             "Level 4"
         );
         levelDropdown.setValue("Level 1"); // default selection
+        levelDropdown.setFocusTraversable(false);
         levelDropdown.setOnAction(e -> {
             String selected = levelDropdown.getValue();
             switch (selected) {
@@ -47,6 +51,8 @@ public class MenuView extends HBox {
                 case "Level 3" -> game.loadLevel("levels/level3.txt");
                 case "Level 4" -> game.loadLevel("levels/level4.txt");
             }
+            // return focus to the game view after level selection
+            game.getGameView().requestFocus();
         });
 
         // Add all controls to HBox
@@ -62,7 +68,13 @@ public class MenuView extends HBox {
             scoreLabel.setText("Score: " + player.getScore());
 
             // Update message
-            messageLabel.setText(player.hasKey() ? "Go to the GATE!" : "Get the KEY!");
+            if (player.hasKey()) {
+                messageLabel.setText("Go to the GATE!");
+                messageLabel.setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
+            } else {
+                messageLabel.setText("Get the KEY!");
+                messageLabel.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
+            }
         }
     }
 }
