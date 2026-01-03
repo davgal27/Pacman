@@ -13,6 +13,7 @@ public class Game {
     private GameView gameView;
     private MenuView menuView;
 
+    private Timeline gameLoop;
     private int gameSpeed = 200;
 
     public Game(Stage stage) {
@@ -46,6 +47,38 @@ public class Game {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void startGameLoop() {
+        if (gameLoop != null) gameLoop.stop();
+
+        gameLoop = new Timeline(
+            new KeyFrame(Duration.millis(gameSpeed), e -> update())
+        );
+        gameLoop.setCycleCount(Timeline.INDEFINITE);
+        gameLoop.play();
+    }
+
+    
+    private void update() {
+        Player player = board.getPlayer();
+        if (player == null) return;
+
+        player.move(board.getTiles());
+        player.UpdateAnimation();
+
+        player.handleTile(board.getTiles());
+
+        for (Ghost ghost : board.getGhosts()) {
+            ghost.update(board.getTiles());
+            ghost.UpdateAnimation();
+
+            if (ghost.collidesWith(player)) {
+                // handle death later
+            }
+        }
+
+        gameView.redraw();
     }
 
     public void setGameSpeed(int speed) {
