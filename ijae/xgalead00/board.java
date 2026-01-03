@@ -49,11 +49,16 @@ public class Board {
                         case 'P' -> {
                             tiles[y][x] = Tiles.EMPTY;
                             player = new Player(x, y, Assets.PACMAN_FRAMES);
+                        
+                            player.setOnKeyCollected(() -> {
+                                for (Ghost ghost : ghosts) {
+                                    ghost.enraged();
+                                }
+                            });
                         }
-
                         case 'C' -> {
                             tiles[y][x] = Tiles.EMPTY;
-                            ghosts.add(new Ghost(x, y, Assets.GHOST_FRAMES));
+                            ghosts.add(new Ghost(x, y, Assets.GHOST_FRAMES, Assets.GHOST_ENRAGED_FRAMES));
                         }
 
                         default -> tiles[y][x] = Tiles.EMPTY;

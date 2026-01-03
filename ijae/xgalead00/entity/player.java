@@ -14,6 +14,11 @@ public class Player extends Entity {
 	public Player(int initx, int inity, Image[] BaseImages) {
 		super(initx, inity, Assets.PACMAN_FRAMES);
 	}
+	private Runnable onKeyCollected;
+
+	public void setOnKeyCollected(Runnable callback) {
+	    this.onKeyCollected = callback;
+	}
 
 	// Called by Game.java during update to handle different events with different tiles 
 	public void TileEvents (Tiles[][] tiles) {
@@ -27,6 +32,10 @@ public class Player extends Entity {
 		if (tile == Tiles.KEY) {
 			tiles[y][x] = Tiles.EMPTY;
 			hasKey = true;
+
+	        if (onKeyCollected != null) {
+	            onKeyCollected.run(); // tell the game something happened
+	        }
 		}
 	}
 

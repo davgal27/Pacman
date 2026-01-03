@@ -25,7 +25,7 @@ public class GameView extends Pane {
     public GameView(Board board, Game game) {
         this.board = board;
         this.game = game;
-        this.canvas = new Canvas(800, 800);
+        this.canvas = new Canvas(1000, 800);
         this.setFocusTraversable(true);
         this.requestFocus();
 

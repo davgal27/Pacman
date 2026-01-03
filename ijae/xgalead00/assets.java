@@ -16,6 +16,7 @@ public final class Assets {
     // Entity assets 
     public static Image[] PACMAN_FRAMES;
     public static Image[] GHOST_FRAMES;
+    public static Image[] GHOST_ENRAGED_FRAMES;
 
     private Assets() {
         // Prevent instantiation
@@ -45,6 +46,14 @@ public final class Assets {
             loadImage("assets/ghost2.png"),
             loadImage("assets/ghost3.png"),
             loadImage("assets/ghost4.png")
+        };
+
+        // Enraged ghost when player gets keys    
+        GHOST_ENRAGED_FRAMES = new Image[] {
+            loadImage("assets/ghost_enraged1.png"),
+            loadImage("assets/ghost_enraged2.png"),
+            loadImage("assets/ghost_enraged3.png"),
+            loadImage("assets/ghost_enraged4.png")
         };
     }
 
