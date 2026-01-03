@@ -85,27 +85,34 @@ public class Game {
         Player player = board.getPlayer();
         if (player == null) return;
 
-        menuView.update(); // HUD first
-
-        // --- Collision check BEFORE movement ---
-        for (Ghost ghost : board.getGhosts()) {
-            if (ghost.CollidesWith(player, player.getX(), player.getY(), ghost.getX(), ghost.getY()) && player.isAlive()) {
-                player.die();
-                gameLoop.stop();
-                Platform.runLater(() -> menuView.showEndOverlay("GAME OVER"));
-                return;
-            }
-        }
+        // Save previous positions
+        int prevPlayerX = player.getX();
+        int prevPlayerY = player.getY();
 
         // --- Move player ---
         player.move(board.getTiles());
         player.UpdateAnimation();
         player.TileEvents(board.getTiles());
 
-        // --- Move ghosts ---
+        // Update menu/HUD after player moved
+        menuView.update();
+
+        // --- Move ghosts and check collisions ---
         for (Ghost ghost : board.getGhosts()) {
+            int prevGhostX = ghost.getX();
+            int prevGhostY = ghost.getY();
+
             ghost.update(board.getTiles());
             ghost.UpdateAnimation();
+
+            // Check collision
+            if (ghost.CollidesWith(player, prevPlayerX, prevPlayerY, prevGhostX, prevGhostY) && player.isAlive()) {
+                player.die();
+                gameLoop.stop();
+                gameView.redraw();
+                Platform.runLater(() -> menuView.showEndOverlay("GAME OVER"));
+                return;
+            }
         }
 
         // --- Check win condition ---
@@ -115,7 +122,7 @@ public class Game {
             return;
         }
 
-        // --- Redraw everything last ---
+        // --- Redraw everything ---
         gameView.redraw();
     }
 
@@ -130,7 +137,7 @@ public class Game {
 
     public Board getBoard() { return board; }
     public GameView getGameView() { return gameView; }
-    
+
     public void startGame() {
         loadLevel(currentLevelPath); // start the currently selected level
         startGameLoop();

@@ -73,15 +73,33 @@ public class Ghost extends Entity {
 
 	// Collision with player
 	public boolean CollidesWith(Player player, int prevPlayerX, int prevPlayerY, int prevGhostX, int prevGhostY) {
-	    // Current positions overlap?
-	    if ((int)player.x == (int)this.x && (int)player.y == (int)this.y) return true;
+	    int playerX = (int) player.x;
+	    int playerY = (int) player.y;
+	    int ghostX = (int) this.x;
+	    int ghostY = (int) this.y;
 
-	    // Check if player and ghost **crossed paths** between previous and current tick
-	    if ((int)player.x == prevGhostX && (int)player.y == prevGhostY &&
-	        prevPlayerX == (int)this.x && prevPlayerY == (int)this.y) return true;
+	    // 1) Current positions overlap
+	    if (playerX == ghostX && playerY == ghostY) return true;
+
+	    // 2) Crossed paths
+	    if (playerX == prevGhostX && playerY == prevGhostY &&
+	        prevPlayerX == ghostX && prevPlayerY == ghostY) return true;
+
+	    // 3) If ghost moves more than 1 tile, check intermediate positions
+	    int dx = ghostX - prevGhostX;
+	    int dy = ghostY - prevGhostY;
+
+	    // Check along the path
+	    int steps = Math.max(Math.abs(dx), Math.abs(dy));
+	    for (int i = 1; i < steps; i++) {
+	        int intermediateX = prevGhostX + (dx * i) / steps;
+	        int intermediateY = prevGhostY + (dy * i) / steps;
+	        if (playerX == intermediateX && playerY == intermediateY) return true;
+	    }
 
 	    return false;
 	}
+		
 
 	public void enraged() {
 	    if (!enraged) {
