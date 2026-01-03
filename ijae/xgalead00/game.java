@@ -76,6 +76,7 @@ public class Game {
         player.move(board.getTiles());
         player.UpdateAnimation();
         player.TileEvents(board.getTiles());
+        menuView.update(); // update score and key/gate message in menu view 
 
         // Ghost collision
         for (Ghost ghost : board.getGhosts()) {

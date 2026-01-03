@@ -24,7 +24,7 @@ public class Board {
 
     public void loadLevel(String path) throws IOException {
         try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(Board.class.getResourceAsStream("levels/level1.txt"))
+            new InputStreamReader(Board.class.getResourceAsStream(path))
             )) {
 
             String[] dims = br.readLine().split("\\s+");
@@ -33,6 +33,7 @@ public class Board {
 
             tiles = new Tiles[rows][cols];
             ghosts.clear();
+            player = null; // reset player
 
             for (int y = 0; y < rows; y++) {
                 String line = br.readLine();
