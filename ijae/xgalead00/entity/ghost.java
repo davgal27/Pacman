@@ -13,6 +13,10 @@ public class Ghost extends Entity {
 	public Ghost(int initx, int inity, Image[] BaseImages) {
 		super (initx, inity, Assets.GHOST_FRAMES);
 		RotateSprite = false;
+		
+		// Pick a random initial direction
+	    Direction[] dirs = Direction.values();
+	    direction = dirs[new Random().nextInt(dirs.length)];
 	}
 
 	// chooses a random direction and moves if possible
@@ -59,7 +63,11 @@ public class Ghost extends Entity {
 	        }
 	    }
 	}
-	
+
+	// Collision with player
+    public boolean CollidesWith(Player player) {
+        return player != null && player.x == x && player.y == y;
+    }
 
 
 }
