@@ -29,7 +29,6 @@ public final class Assets {
         EMPTY = loadImage("assets/empty.png");
         POINT = loadImage("assets/point.png");
         KEY   = loadImage("assets/key.png");
-
         GATE = loadImage("assets/gate.png");
     
         // Pacman animation frames 

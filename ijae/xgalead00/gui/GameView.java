@@ -21,7 +21,6 @@ public class GameView extends Pane {
     private final Board board;
     private final Game game;
     private final Canvas canvas;
-    private Timeline gameLoop;
 
     public GameView(Board board, Game game) {
         this.board = board;
@@ -50,72 +49,32 @@ public class GameView extends Pane {
         });
     }
 
-    // Start the game loop
-    public void startGameLoop(int speedMs) {
-        if (gameLoop != null) gameLoop.stop();
-        gameLoop = new Timeline(new KeyFrame(Duration.millis(speedMs), e -> update()));
-        gameLoop.setCycleCount(Timeline.INDEFINITE);
-        gameLoop.play();
-    }
-
     // Update entities and redraw
-    private void update() {
+    public void redraw() {
         GraphicsContext gc = canvas.getGraphicsContext2D();
-
-        Player player = board.getPlayer();
-        if (player != null) {
-            player.move(board.getTiles());
-            player.UpdateAnimation();
-        }
-
-        for (Ghost ghost : board.getGhosts()) {
-            ghost.update(board.getTiles());
-            ghost.UpdateAnimation();
-        }
-
-        draw(gc);
-    }
-
-    // Draw everything
-    private void draw(GraphicsContext gc) {
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
-        drawBoard(gc);
 
-        Player player = board.getPlayer();
-        if (player != null) player.draw(gc, board.getTileWidth(), board.getTileHeight());
-
-        for (Ghost ghost : board.getGhosts()) ghost.draw(gc, board.getTileWidth(), board.getTileHeight());
-    }
-
-    private void drawBoard(GraphicsContext gc) {
+        // Draw tiles
         for (int y = 0; y < board.getRows(); y++) {
             for (int x = 0; x < board.getCols(); x++) {
                 Tiles tile = board.getTile(x, y);
-
-                if (tile == Tiles.POINT) {
-                    Image img = tile.GetImage();
-
-                    double px =
-                        x * board.getTileWidth()
-                        + (board.getTileWidth() - img.getWidth()) / 2;
-
-                    double py =
-                        y * board.getTileHeight()
-                        + (board.getTileHeight() - img.getHeight()) / 2;
-
-                    gc.drawImage(img, px, py);
-                } else {
-                    Image img = tile.GetImage();
-                    gc.drawImage(
-                        img,
-                        x * board.getTileWidth(),
-                        y * board.getTileHeight(),
-                        board.getTileWidth(),
-                        board.getTileHeight()
-                    );
-                }
+                Image img = tile.GetImage();
+                gc.drawImage(
+                    img,
+                    x * board.getTileWidth(),
+                    y * board.getTileHeight(),
+                    board.getTileWidth(),
+                    board.getTileHeight()
+                );
             }
         }
-    }
 
+        // Draw player
+        Player player = board.getPlayer();
+        if (player != null) player.draw(gc, board.getTileWidth(), board.getTileHeight());
+
+        // Draw ghosts
+        for (Ghost ghost : board.getGhosts())
+            ghost.draw(gc, board.getTileWidth(), board.getTileHeight());
+    }
 }

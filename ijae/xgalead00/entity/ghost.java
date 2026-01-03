@@ -16,7 +16,6 @@ public class Ghost extends Entity {
 	}
 
 	// chooses a random direction and moves if possible
-	// chooses a random direction and moves if possible
 	public void update(Tiles[][] tiles) {
 
 	    // Try to move forward
@@ -30,20 +29,20 @@ public class Ghost extends Entity {
 
 	    // If blocked, choose a new valid direction
 	    if (!canMove) {
-	        chooseRandomValidDirection(tiles);
+	        ChooseRandomDirection(tiles);
 	        return;
 	    }
 
 	    // Occasionally change direction anyway
 	    if (random.nextInt(10) == 0) {
-	        chooseRandomValidDirection(tiles);
+	        ChooseRandomDirection(tiles);
 	    }
 
 	    // Move
 	    x = nx;
 	    y = ny;
 	}
-	private void chooseRandomValidDirection(Tiles[][] tiles) {
+	private void ChooseRandomDirection(Tiles[][] tiles) {
 	    Direction[] dirs = Direction.values();
 
 	    for (int i = 0; i < dirs.length; i++) {
@@ -59,7 +58,8 @@ public class Ghost extends Entity {
 	            return;
 	        }
 	    }
-}
+	}
+	
 
 
 }
