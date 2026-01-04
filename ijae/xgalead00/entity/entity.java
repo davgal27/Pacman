@@ -50,26 +50,26 @@ public abstract class Entity {
 
     // Rotates an image by angle
     protected Image RotateImage(Image image, double angle) {
-	    ImageView imageView = new ImageView(image);
+        ImageView imageView = new ImageView(image);
 
-	    boolean swap = Math.abs(angle) == 90;
+        boolean swap = Math.abs(angle) == 90;
 
-	    int w = (int) image.getWidth();
-	    int h = (int) image.getHeight();
+        int w = (int) image.getWidth();
+        int h = (int) image.getHeight();
 
-	    WritableImage rotated = swap
-	            ? new WritableImage(h, w)
-	            : new WritableImage(w, h);
+        WritableImage rotated = swap
+                ? new WritableImage(h, w)
+                : new WritableImage(w, h);
 
-	    SnapshotParameters params = new SnapshotParameters();
-	    params.setFill(Color.TRANSPARENT); // for loading images without white backgrond
-	    params.setTransform(
-	        new Rotate(angle, w / 2.0, h / 2.0)
-	    );
+        SnapshotParameters params = new SnapshotParameters();
+        params.setFill(Color.TRANSPARENT); // for loading images without white backgrond
+        params.setTransform(
+            new Rotate(angle, w / 2.0, h / 2.0)
+        );
 
-	    imageView.snapshot(params, rotated);
-	    return rotated;
-	}
+        imageView.snapshot(params, rotated);
+        return rotated;
+    }
 
     // Updates animation once per game step 
     public void UpdateAnimation() {
@@ -109,26 +109,26 @@ public abstract class Entity {
 
     // Move entity by one tile in current direction 
     public void move() {
-	    x += direction.dx();
-	    y += direction.dy();
-	}
+        x += direction.dx();
+        y += direction.dy();
+    }
 
-	// New move for Pacman to respect walls
-	public void move(Tiles[][] tiles) {
-	    int nx = x + direction.dx();
-	    int ny = y + direction.dy();
+    // New move for Pacman to respect walls
+    public void move(Tiles[][] tiles) {
+        int nx = x + direction.dx();
+        int ny = y + direction.dy();
 
-	    if (ny >= 0 && ny < tiles.length && nx >= 0 && nx < tiles[0].length) {
-	        if (tiles[ny][nx].IsAccessible()) {
-	            x = nx;
-	            y = ny;
-	        }
-	    }
-	}
+        if (ny >= 0 && ny < tiles.length && nx >= 0 && nx < tiles[0].length) {
+            if (tiles[ny][nx].IsAccessible()) {
+                x = nx;
+                y = ny;
+            }
+        }
+    }
 
     // Getters & setters
     public void setDirection(Direction dir) { this.direction = dir; }
     public Direction getDirection() { return direction; }
     public int getX() { return x; }
     public int getY() { return y; }
-}
+} 
