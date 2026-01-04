@@ -200,7 +200,7 @@ public class MenuView extends HBox {
     private ComboBox<String> createLevelDropdown() {
         ComboBox<String> dropdown = new ComboBox<>();
         dropdown.getItems().addAll("Level 1", "Level 2", "Level 3", "Level 4");
-        dropdown.setValue("Level 1");
+        dropdown.setValue("Level");
         dropdown.setPrefWidth(150);
         dropdown.setStyle("-fx-font-size: 18px;");
         dropdown.setOnAction(e -> {
