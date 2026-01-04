@@ -46,7 +46,8 @@ public class Game {
         root.getChildren().addAll(
             gameLayout,
             menuView.getStartOverlay(),   // centered overlay
-            menuView.getEndOverlay()
+            menuView.getEndOverlay(),
+            menuView.getPauseOverlay()
         );
 
         Scene scene = new Scene(root);
@@ -129,18 +130,31 @@ public class Game {
 
     public void setGameSpeed(int speed) {
         this.gameSpeed = speed;
+
         if (gameLoop != null) {
-            gameLoop.stop();
-            startGameLoop();
+            // Update timing WITHOUT restarting the loop
+            gameLoop.getKeyFrames().setAll(
+                new KeyFrame(Duration.millis(gameSpeed), e -> update())
+            );
         }
     }
 
+
     public Board getBoard() { return board; }
+    
     public GameView getGameView() { return gameView; }
 
     public void startGame() {
         loadLevel(currentLevelPath); // start the currently selected level
         startGameLoop();
+    }
+
+    public void resumeGame() {
+        if (gameLoop != null) {
+            gameLoop.play();
+        } else {
+            startGameLoop();
+        }
     }
     public Timeline getGameLoop() {
         return gameLoop;
