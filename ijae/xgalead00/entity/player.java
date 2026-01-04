@@ -4,52 +4,78 @@ import javafx.scene.image.Image;
 import ijae.xgalead00.Assets;
 import ijae.xgalead00.Tiles;
 
-// Player entity which uses entity logic. Direction handling set externally
+/**
+ * Represents the player entity (Pacman) on the board.
+ * Handles score, key collection, and alive state.
+ * Movement direction is controlled externally.
+ */
 public class Player extends Entity {
-	
-	private boolean alive = true;
-	private int score = 0; 
-	private boolean hasKey = false;
 
-	public Player(int initx, int inity, Image[] BaseImages) {
-		super(initx, inity, Assets.PACMAN_FRAMES);
-	}
-	private Runnable onKeyCollected;
+    /** Whether the player is alive */
+    private boolean alive = true;
 
-	public void setOnKeyCollected(Runnable callback) {
-	    this.onKeyCollected = callback;
-	}
+    /** Player's current score */
+    private int score = 0;
 
-	// Called by Game.java during update to handle different events with different tiles 
-	public void TileEvents (Tiles[][] tiles) {
-		Tiles tile = tiles[y][x];
+    /** Whether the player has collected the key */
+    private boolean hasKey = false;
 
-		if (tile == Tiles.POINT) {
-			tiles[y][x] = Tiles.EMPTY;
-			score += 10;
-		}
+    /** Callback to notify the game when a key is collected */
+    private Runnable onKeyCollected;
 
-		if (tile == Tiles.KEY) {
-			tiles[y][x] = Tiles.EMPTY;
-			hasKey = true;
+    /**
+     * Constructs a Player at the given coordinates with base images.
+     *
+     * @param initx initial x-coordinate
+     * @param inity initial y-coordinate
+     * @param BaseImages base images (not used, defaults to Assets.PACMAN_FRAMES)
+     */
+    public Player(int initx, int inity, Image[] BaseImages) {
+        super(initx, inity, Assets.PACMAN_FRAMES);
+    }
 
-	        if (onKeyCollected != null) {
-	            onKeyCollected.run(); // tell the game something happened
-	        }
-		}
-	}
+    /**
+     * Sets a callback to run when the player collects a key.
+     *
+     * @param callback function to call on key collection
+     */
+    public void setOnKeyCollected(Runnable callback) {
+        this.onKeyCollected = callback;
+    }
 
-	public void die() {
-		alive = false;
-	}
-	public int getScore() {
-		return score;
-	}
-	public boolean isAlive() {
-		return alive;
-	}
-	public boolean hasKey() {
-		return hasKey;
-	}
+    /**
+     * Handles events on the tile the player is currently on.
+     * Updates score, key collection, and tile state.
+     *
+     * @param tiles 2D array of board tiles
+     */
+    public void TileEvents(Tiles[][] tiles) {
+        Tiles tile = tiles[y][x];
 
+        if (tile == Tiles.POINT) {
+            tiles[y][x] = Tiles.EMPTY; // remove the point
+            score += 10;
+        }
+
+        if (tile == Tiles.KEY) {
+            tiles[y][x] = Tiles.EMPTY; // remove the key
+            hasKey = true;
+
+            if (onKeyCollected != null) {
+                onKeyCollected.run(); // notify the game
+            }
+        }
+    }
+
+    /** Marks the player as dead */
+    public void die() {alive = false;}
+
+    /** Returns the player's current score */
+    public int getScore() {return score;}
+
+    /** Returns whether the player is alive */
+    public boolean isAlive() {return alive;}
+
+    /** Returns whether the player has collected the key */
+    public boolean hasKey() {return hasKey;}
 }

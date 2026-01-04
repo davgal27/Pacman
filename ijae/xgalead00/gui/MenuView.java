@@ -14,11 +14,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.application.Platform;
-
-
-// Text editor
-import javafx.scene.control.TextArea;
-import javafx.scene.control.Button;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.geometry.Insets;
@@ -27,32 +22,42 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-
+/**
+ * MenuView handles the game HUD and overlays including:
+ * - Score and message display
+ * - Start, pause, and end overlays
+ * - Level selection and custom level creation
+ */
 public class MenuView extends HBox {
 
     private final Game game;
 
-    // HUD
+    /** HUD elements */
     private final Label scoreLabel;
     private final Label messageLabel;
 
-    // Overlays
+    /** Overlay panes */
     private StackPane startOverlay;
     private StackPane pauseOverlay;
     private final StackPane endOverlay;
     private Label endLabel;
 
-    // Separate dropdowns
+    /** Level selection dropdowns */
     private ComboBox<String> pauseLevelDropdown;
     private ComboBox<String> endLevelDropdown;
 
+    /**
+     * Constructs the MenuView with HUD and overlays.
+     *
+     * @param game the main game instance
+     */
     public MenuView(Game game) {
         this.game = game;
 
         setSpacing(10);
         setAlignment(Pos.CENTER_LEFT);
 
-        // ================= HUD =================
+        // HUD elements
         ImageView menuButton = createMenuButton();
         menuButton.setOnMouseClicked(e -> {
             if (game.getGameLoop() != null) game.getGameLoop().stop();
@@ -77,15 +82,15 @@ public class MenuView extends HBox {
 
         getChildren().addAll(menuButton, scoreLabel, messageLabel);
 
-        // ================= Overlays =================
+        // Create overlays
         startOverlay = createStartOverlay();
         pauseOverlay = createPauseOverlay();
         endOverlay = createEndOverlay();
     }
 
-    // =========================================================
-    // Menu Button
-    // =========================================================
+    /**
+     * Creates the menu button that opens the pause overlay.
+     */
     private ImageView createMenuButton() {
         Image image = new Image(
             getClass().getResourceAsStream("/ijae/xgalead00/assets/menu_button.png")
@@ -96,6 +101,7 @@ public class MenuView extends HBox {
         button.setPreserveRatio(true);
         button.setFocusTraversable(false);
 
+        // Stop game loop and show pause overlay on click
         button.setOnMouseClicked(e -> {
             if (game.getGameLoop() != null) game.getGameLoop().stop();
             pauseOverlay.setVisible(true);
@@ -107,9 +113,9 @@ public class MenuView extends HBox {
         return button;
     }
 
-    // =========================================================
-    // Start Overlay
-    // =========================================================
+    /**
+     * Creates the start overlay with a start button.
+     */
     private StackPane createStartOverlay() {
         StackPane overlay = baseOverlay(0.4);
 
@@ -121,6 +127,7 @@ public class MenuView extends HBox {
         startButton.setFitWidth(300);
         startButton.setPreserveRatio(true);
 
+        // Start the game and hide overlay on click
         startButton.setOnMouseClicked(e -> {
             game.startGame();
             overlay.setVisible(false);
@@ -135,13 +142,16 @@ public class MenuView extends HBox {
         return overlay;
     }
 
-    // =========================================================
-    // Pause Overlay
-    // =========================================================
+    /**
+     * Creates the pause overlay with:
+     * - Speed slider
+     * - Level selection
+     * - Resume, quit, and level editor buttons
+     */
     private StackPane createPauseOverlay() {
         StackPane overlay = baseOverlay(0.6);
 
-        // ================= Speed slider =================
+        // Speed slider controls game loop speed
         Label speedLabel = new Label("Game Speed:");
         speedLabel.setStyle("-fx-font-size: 24px; -fx-text-fill: white;");
 
@@ -153,18 +163,18 @@ public class MenuView extends HBox {
         speedSlider.setPrefWidth(250);
         speedSlider.setFocusTraversable(false);
 
-        // Invert the value when updating game speed
+        // Invert the value to map slider to game speed correctly
         speedSlider.valueProperty().addListener((obs, oldVal, newVal) ->
-            game.setGameSpeed(550 - newVal.intValue()) // 550 = 50 + 500
+            game.setGameSpeed(550 - newVal.intValue())
         );
-
 
         HBox speedBox = new HBox(10, speedLabel, speedSlider);
         speedBox.setAlignment(Pos.CENTER);
 
-        // ================= Level dropdown =================
+        // Level dropdown
         pauseLevelDropdown = createLevelDropdown();
 
+        // Control buttons
         Label resume = menuLabel("Resume", () -> {
             overlay.setVisible(false);
             game.resumeGame();
@@ -172,11 +182,9 @@ public class MenuView extends HBox {
         });
 
         Label quit = menuLabel("Quit", () -> System.exit(0));
-
         Label createLevel = menuLabel("Create Level", this::openLevelEditor);
 
         VBox box = new VBox(20, pauseLevelDropdown, speedBox, createLevel, resume, quit);
-
         box.setAlignment(Pos.CENTER);
 
         overlay.getChildren().add(box);
@@ -184,9 +192,12 @@ public class MenuView extends HBox {
         return overlay;
     }
 
-    // =========================================================
-    // End Overlay
-    // =========================================================
+    /**
+     * Creates the end overlay shown when the game ends, including:
+     * - Message label
+     * - Level selection
+     * - Restart and quit buttons
+     */
     private StackPane createEndOverlay() {
         StackPane overlay = baseOverlay(0.6);
 
@@ -202,7 +213,6 @@ public class MenuView extends HBox {
 
         Label quit = menuLabel("Quit", () -> System.exit(0));
 
-        // ================= Level dropdown =================
         endLevelDropdown = createLevelDropdown();
 
         VBox box = new VBox(20, endLabel, endLevelDropdown, restart, quit);
@@ -213,19 +223,17 @@ public class MenuView extends HBox {
         return overlay;
     }
 
-    // =========================================================
-    // Level dropdown factory (used for both overlays)
-    // =========================================================
+    /**
+     * Creates a dropdown for selecting levels (internal or custom).
+     */
     private ComboBox<String> createLevelDropdown() {
         ComboBox<String> dropdown = new ComboBox<>();
 
-        // Internal levels
+        // Add internal levels
         String[] internalLevels = {"Level 1", "Level 2", "Level 3", "Level 4"};
-        for (String lvl : internalLevels) {
-            dropdown.getItems().add(lvl);
-        }
+        for (String lvl : internalLevels) dropdown.getItems().add(lvl);
 
-        // Load custom levels
+        // Load custom levels from folder
         File dir = new File("custom_levels");
         if (dir.exists() && dir.isDirectory()) {
             for (File f : dir.listFiles()) {
@@ -241,17 +249,16 @@ public class MenuView extends HBox {
         dropdown.setStyle("-fx-font-size: 18px;");
         dropdown.setPromptText("Level");
 
-        // =================== CUSTOM BUTTON CELL ===================
-        // This forces the button (visible part) to always show "Level"
+        // Always display "Level" as the visible text
         dropdown.setButtonCell(new javafx.scene.control.ListCell<>() {
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                setText("Level"); // <-- ALWAYS shows "Level"
+                setText("Level");
             }
         });
 
-        // Handle selection normally
+        // Load level when selected
         dropdown.setOnAction(e -> {
             String value = dropdown.getValue();
             if (value == null) return;
@@ -277,7 +284,7 @@ public class MenuView extends HBox {
             if (game.getGameLoop() != null) game.getGameLoop().stop();
             game.getGameView().redraw();
 
-            // Show start overlay and hide others
+            // Show start overlay, hide others
             startOverlay.setVisible(true);
             pauseOverlay.setVisible(false);
             endOverlay.setVisible(false);
@@ -287,16 +294,16 @@ public class MenuView extends HBox {
         return dropdown;
     }
 
-    // =========================================================
-    // Level Editor
-    // =========================================================
+    /**
+     * Opens a text editor window to create a custom level.
+     */
     private void openLevelEditor() {
         Stage stage = new Stage();
 
         TextArea editor = new TextArea();
         editor.setPrefSize(400, 300);
 
-        // Starter template (VALID LEVEL)
+        // Starter template
         editor.setText(
             "3 4\n" +
             "P.KW\n" +
@@ -319,13 +326,16 @@ public class MenuView extends HBox {
         stage.show();
     }
 
+    /**
+     * Saves the custom level to a file and updates the dropdowns.
+     *
+     * @param content the level text
+     */
     private void saveLevelToFile(String content) {
         try {
-            // External folder for custom levels (writable even in JAR)
             File dir = new File("custom_levels");
             if (!dir.exists()) dir.mkdir();
 
-            // Auto-number custom levels
             int id = 1;
             for (File f : dir.listFiles()) {
                 if (f.getName().startsWith("custom")) id++;
@@ -347,11 +357,11 @@ public class MenuView extends HBox {
         }
     }
 
-
-
-    // =========================================================
-    // Helpers
-    // =========================================================
+    /**
+     * Creates a semi-transparent overlay pane.
+     *
+     * @param opacity the overlay opacity (0.0–1.0)
+     */
     private StackPane baseOverlay(double opacity) {
         StackPane pane = new StackPane();
         pane.setAlignment(Pos.CENTER);
@@ -360,6 +370,12 @@ public class MenuView extends HBox {
         return pane;
     }
 
+    /**
+     * Creates a label styled as a menu option with click action.
+     *
+     * @param text the label text
+     * @param action the action to execute on click
+     */
     private Label menuLabel(String text, Runnable action) {
         Label label = new Label(text);
         label.setStyle("-fx-font-size: 24; -fx-text-fill: white;");
@@ -369,23 +385,27 @@ public class MenuView extends HBox {
         return label;
     }
 
-    // =========================================================
     // Public API
-    // =========================================================
     public StackPane getStartOverlay() { return startOverlay; }
     public StackPane getPauseOverlay() { return pauseOverlay; }
     public StackPane getEndOverlay() { return endOverlay; }
 
+    /**
+     * Displays the end overlay with a custom message.
+     *
+     * @param message the text to show
+     */
     public void showEndOverlay(String message) {
         endLabel.setText(message);
-        // Force the dropdown to no selection so any click triggers reload
-        // Clear selection safely
         endLevelDropdown.getSelectionModel().clearSelection();
         endLevelDropdown.setValue(null);
 
         endOverlay.setVisible(true);
     }
 
+    /**
+     * Updates HUD elements based on player state (score, key).
+     */
     public void update() {
         Player player = game.getBoard().getPlayer();
         if (player == null) return;

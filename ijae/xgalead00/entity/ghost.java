@@ -1,127 +1,159 @@
 package ijae.xgalead00.entity;
 
 import ijae.xgalead00.Direction;
-import ijae.xgalead00.Board;
 import ijae.xgalead00.Tiles;
 import javafx.scene.image.Image;
 import java.util.Random;
-import ijae.xgalead00.Assets;
 
+/**
+ * Represents a Ghost entity on the board.
+ * Handles movement, enraged state, and collision detection with the player.
+ */
 public class Ghost extends Entity {
-	private final Random random = new Random();
-	private boolean enraged = false;
-	private Image[] normalFrames;
-	private Image[] enragedFrames;
+    private final Random random = new Random();
 
+    /** Whether the ghost is in an enraged (vulnerable) state */
+    private boolean enraged = false;
 
-	public Ghost(int initx, int inity, Image[] BaseImages, Image[] enragedFrames) {
-		super(initx, inity, BaseImages);
-	    this.normalFrames = BaseImages;
-	    this.enragedFrames = enragedFrames;
-		RotateSprite = false;
+    /** Normal (non-enraged) animation frames */
+    private Image[] normalFrames;
 
-		// Pick a random initial direction
-	    Direction[] dirs = Direction.values();
-	    direction = dirs[new Random().nextInt(dirs.length)];
-	}
+    /** Enraged animation frames */
+    private Image[] enragedFrames;
 
-	// chooses a random direction and moves if possible
-	public void update(Tiles[][] tiles) {
-	    // Move twice if enraged
-	    int moves = enraged ? 2 : 1;
-	    for (int i = 0; i < moves; i++) {
-	        int nx = x + direction.dx();
-	        int ny = y + direction.dy();
+    /**
+     * Constructs a Ghost at the given position with normal and enraged images.
+     * Picks a random initial direction.
+     *
+     * @param initx initial x-coordinate
+     * @param inity initial y-coordinate
+     * @param BaseImages normal frames (facing right)
+     * @param enragedFrames frames for enraged state
+     */
+    public Ghost(int initx, int inity, Image[] BaseImages, Image[] enragedFrames) {
+        super(initx, inity, BaseImages);
+        this.normalFrames = BaseImages;
+        this.enragedFrames = enragedFrames;
+        RotateSprite = false;
 
-	        boolean canMove =
-	            ny >= 0 && ny < tiles.length &&
-	            nx >= 0 && nx < tiles[0].length &&
-	            tiles[ny][nx].IsAccessible();
+        // Pick a random initial direction
+        Direction[] dirs = Direction.values();
+        direction = dirs[random.nextInt(dirs.length)];
+    }
 
-	        if (!canMove) {
-	            ChooseRandomDirection(tiles);
-	            continue;
-	        }
+    /**
+     * Updates the ghost's movement each game step.
+     * Moves twice if enraged and may randomly change direction.
+     *
+     * @param tiles 2D array of board tiles
+     */
+    public void update(Tiles[][] tiles) {
+        int moves = enraged ? 2 : 1;
 
-	        // Occasionally change direction anyway
-	        if (new Random().nextInt(10) == 0) {
-	            ChooseRandomDirection(tiles);
-	        }
+        for (int i = 0; i < moves; i++) {
+            int nx = x + direction.dx();
+            int ny = y + direction.dy();
 
-	        // Move
-	        x = nx;
-	        y = ny;
-	    }
-	}
-	private void ChooseRandomDirection(Tiles[][] tiles) {
-	    Direction[] dirs = Direction.values();
+            boolean canMove = ny >= 0 && ny < tiles.length &&
+                              nx >= 0 && nx < tiles[0].length &&
+                              tiles[ny][nx].IsAccessible();
 
-	    for (int i = 0; i < dirs.length; i++) {
-	        Direction d = dirs[random.nextInt(dirs.length)];
-	        int nx = x + d.dx();
-	        int ny = y + d.dy();
+            if (!canMove) {
+                ChooseRandomDirection(tiles);
+                continue;
+            }
 
-	        if (ny >= 0 && ny < tiles.length &&
-	            nx >= 0 && nx < tiles[0].length &&
-	            tiles[ny][nx].IsAccessible()) {
+            // Occasionally change direction randomly even if path is clear
+            if (random.nextInt(10) == 0) {
+                ChooseRandomDirection(tiles);
+            }
 
-	            direction = d;
-	            return;
-	        }
-	    }
-	}
+            // Apply movement
+            x = nx;
+            y = ny;
+        }
+    }
 
-	// Collision with player
-	public boolean CollidesWith(Player player, int prevPlayerX, int prevPlayerY, int prevGhostX, int prevGhostY) {
-	    int playerX = (int) player.x;
-	    int playerY = (int) player.y;
-	    int ghostX = (int) this.x;
-	    int ghostY = (int) this.y;
+    /**
+     * Chooses a random accessible direction for the ghost.
+     *
+     * @param tiles 2D array of board tiles
+     */
+    private void ChooseRandomDirection(Tiles[][] tiles) {
+        Direction[] dirs = Direction.values();
 
-	    // 1) Current positions overlap
-	    if (playerX == ghostX && playerY == ghostY) return true;
+        for (int i = 0; i < dirs.length; i++) {
+            Direction d = dirs[random.nextInt(dirs.length)];
+            int nx = x + d.dx();
+            int ny = y + d.dy();
 
-	    // 2) Crossed paths
-	    if (playerX == prevGhostX && playerY == prevGhostY &&
-	        prevPlayerX == ghostX && prevPlayerY == ghostY) return true;
+            if (ny >= 0 && ny < tiles.length &&
+                nx >= 0 && nx < tiles[0].length &&
+                tiles[ny][nx].IsAccessible()) {
+                direction = d;
+                return;
+            }
+        }
+    }
 
-	    // 3) If ghost moves more than 1 tile, check intermediate positions
-	    int dx = ghostX - prevGhostX;
-	    int dy = ghostY - prevGhostY;
+    /**
+     * Checks if the ghost collides with the player.
+     * Handles same-tile collisions, crossed paths, and multiple-step movement.
+     *
+     * @param player the player entity
+     * @param prevPlayerX player's previous x-coordinate
+     * @param prevPlayerY player's previous y-coordinate
+     * @param prevGhostX ghost's previous x-coordinate
+     * @param prevGhostY ghost's previous y-coordinate
+     * @return true if a collision occurred
+     */
+    public boolean CollidesWith(Player player, int prevPlayerX, int prevPlayerY,
+                                int prevGhostX, int prevGhostY) {
+        int playerX = (int) player.x;
+        int playerY = (int) player.y;
+        int ghostX = (int) this.x;
+        int ghostY = (int) this.y;
 
-	    // Check along the path
-	    int steps = Math.max(Math.abs(dx), Math.abs(dy));
-	    for (int i = 1; i < steps; i++) {
-	        int intermediateX = prevGhostX + (dx * i) / steps;
-	        int intermediateY = prevGhostY + (dy * i) / steps;
-	        if (playerX == intermediateX && playerY == intermediateY) return true;
-	    }
+        // 1) Current positions overlap
+        if (playerX == ghostX && playerY == ghostY) return true;
 
-	    return false;
-	}
-		
+        // 2) Crossed paths
+        if (playerX == prevGhostX && playerY == prevGhostY &&
+            prevPlayerX == ghostX && prevPlayerY == ghostY) return true;
 
-	public void enraged() {
-	    if (!enraged) {
-	        enraged = true;
-	        this.BaseImages = enragedFrames;
+        // 3) If ghost moves multiple tiles, check intermediate positions
+        int dx = ghostX - prevGhostX;
+        int dy = ghostY - prevGhostY;
+        int steps = Math.max(Math.abs(dx), Math.abs(dy));
 
-	        // Rebuild rotated images
-	        RightImages = BaseImages;
-	        DownImages = new Image[BaseImages.length];
-	        LeftImages = new Image[BaseImages.length];
-	        UpImages = new Image[BaseImages.length];
+        for (int i = 1; i < steps; i++) {
+            int intermediateX = prevGhostX + (dx * i) / steps;
+            int intermediateY = prevGhostY + (dy * i) / steps;
+            if (playerX == intermediateX && playerY == intermediateY) return true;
+        }
 
-	        for (int i = 0; i < BaseImages.length; i++) {
-	            DownImages[i] = RotateImage(BaseImages[i], 90);
-	            LeftImages[i] = RotateImage(BaseImages[i], 180);
-	            UpImages[i] = RotateImage(BaseImages[i], -90);
-	        }
-	    }
-	}
+        return false;
+    }
 
+    /**
+     * Puts the ghost into the enraged state.
+     * Updates its animation frames accordingly.
+     */
+    public void enraged() {
+        if (!enraged) {
+            enraged = true;
+            this.BaseImages = enragedFrames;
 
+            RightImages = BaseImages;
+            DownImages = new Image[BaseImages.length];
+            LeftImages = new Image[BaseImages.length];
+            UpImages = new Image[BaseImages.length];
 
-
-
+            for (int i = 0; i < BaseImages.length; i++) {
+                DownImages[i] = RotateImage(BaseImages[i], 90);
+                LeftImages[i] = RotateImage(BaseImages[i], 180);
+                UpImages[i] = RotateImage(BaseImages[i], -90);
+            }
+        }
+    }
 }

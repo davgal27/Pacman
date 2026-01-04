@@ -9,13 +9,17 @@ import ijae.xgalead00.Tiles;
 import javafx.animation.Timeline;     
 import javafx.animation.KeyFrame;    
 import javafx.util.Duration;          
-import javafx.scene.control.Alert;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
+/**
+ * Main game controller class.
+ * <p>
+ * Manages the game board, entities, game loop, and user interface (views and HUD).
+ */
 public class Game {
     private final Stage stage;
     private final Board board;
@@ -24,16 +28,24 @@ public class Game {
     private MenuView menuView;
 
     private Timeline gameLoop;
-    private int gameSpeed = 200;
+    private int gameSpeed = 200;  // milliseconds per frame
 
     private String currentLevelPath = "levels/level1.txt";
 
-
+    /**
+     * Constructs a new Game tied to a Stage.
+     *
+     * @param stage the primary JavaFX stage
+     */
     public Game(Stage stage) {
         this.stage = stage;
         this.board = new Board();
     }
 
+    /**
+     * Initializes the game UI and prepares the first level.
+     * Sets up the game and menu views, input, and initial board rendering.
+     */
     public void start() {
         gameView = new GameView(board, this);
         menuView = new MenuView(this);
@@ -45,7 +57,7 @@ public class Game {
         StackPane root = new StackPane();
         root.getChildren().addAll(
             gameLayout,
-            menuView.getStartOverlay(),   // centered overlay
+            menuView.getStartOverlay(),
             menuView.getEndOverlay(),
             menuView.getPauseOverlay()
         );
@@ -56,21 +68,28 @@ public class Game {
         stage.setTitle("Pacman");
         stage.setScene(scene);
         stage.show();
-        loadLevel("ijae/xgalead00/levels/level1.txt");  // prepare board
-        gameView.redraw();               // draw paused game
 
+        loadLevel("ijae/xgalead00/levels/level1.txt");
+        gameView.redraw();
     }
 
+    /**
+     * Loads a level from a given file path.
+     *
+     * @param path path to the level file
+     */
     public void loadLevel(String path) {
         try {
-            currentLevelPath = path; // remember which level is loaded
+            currentLevelPath = path;
             board.loadLevel(path);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-
+    /**
+     * Starts the main game loop, updating entities at intervals defined by gameSpeed.
+     */
     private void startGameLoop() {
         if (gameLoop != null) gameLoop.stop();
 
@@ -81,24 +100,27 @@ public class Game {
         gameLoop.play();
     }
 
-    
+    /**
+     * Updates the game state.
+     * <p>
+     * Handles player and ghost movements, animations, tile events, collision detection,
+     * win/loss conditions, and redraws the game view.
+     */
     private void update() {
         Player player = board.getPlayer();
         if (player == null) return;
 
-        // Save previous positions
         int prevPlayerX = player.getX();
         int prevPlayerY = player.getY();
 
-        // --- Move player ---
+        // Move player and handle tile events
         player.move(board.getTiles());
         player.UpdateAnimation();
         player.TileEvents(board.getTiles());
 
-        // Update menu/HUD after player moved
         menuView.update();
 
-        // --- Move ghosts and check collisions ---
+        // Move ghosts and check collisions
         for (Ghost ghost : board.getGhosts()) {
             int prevGhostX = ghost.getX();
             int prevGhostY = ghost.getY();
@@ -106,8 +128,8 @@ public class Game {
             ghost.update(board.getTiles());
             ghost.UpdateAnimation();
 
-            // Check collision
-            if (ghost.CollidesWith(player, prevPlayerX, prevPlayerY, prevGhostX, prevGhostY) && player.isAlive()) {
+            if (ghost.CollidesWith(player, prevPlayerX, prevPlayerY, prevGhostX, prevGhostY) 
+                && player.isAlive()) {
                 player.die();
                 gameLoop.stop();
                 gameView.redraw();
@@ -116,39 +138,45 @@ public class Game {
             }
         }
 
-        // --- Check win condition ---
+        // Check if player reached gate with key
         if (board.getTile(player.getX(), player.getY()) == Tiles.GATE && player.hasKey()) {
             gameLoop.stop();
             Platform.runLater(() -> menuView.showEndOverlay("YOU WIN!"));
             return;
         }
 
-        // --- Redraw everything ---
         gameView.redraw();
     }
 
-
+    /**
+     * Sets the speed of the game in milliseconds per update.
+     * Updates the timeline's KeyFrame without restarting the loop.
+     *
+     * @param speed milliseconds per frame
+     */
     public void setGameSpeed(int speed) {
         this.gameSpeed = speed;
 
         if (gameLoop != null) {
-            // Update timing WITHOUT restarting the loop
             gameLoop.getKeyFrames().setAll(
                 new KeyFrame(Duration.millis(gameSpeed), e -> update())
             );
         }
     }
 
-
+    /** @return the game board */
     public Board getBoard() { return board; }
-    
+
+    /** @return the GameView instance */
     public GameView getGameView() { return gameView; }
 
+    /** Starts or restarts the current level */
     public void startGame() {
-        loadLevel(currentLevelPath); // start the currently selected level
+        loadLevel(currentLevelPath);
         startGameLoop();
     }
 
+    /** Resumes the game loop if paused, or starts it if not running */
     public void resumeGame() {
         if (gameLoop != null) {
             gameLoop.play();
@@ -156,10 +184,9 @@ public class Game {
             startGameLoop();
         }
     }
+
+    /** @return the Timeline object controlling the game loop */
     public Timeline getGameLoop() {
         return gameLoop;
     }
-
-
-
 }
