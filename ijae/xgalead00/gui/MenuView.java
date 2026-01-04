@@ -23,11 +23,12 @@ public class MenuView extends HBox {
     // Overlays
     private StackPane startOverlay;
     private StackPane pauseOverlay;
-    private StackPane endOverlay;
+    private final StackPane endOverlay;
     private Label endLabel;
 
-    // Shared level dropdown (used in pause & end overlay)
-    private final ComboBox<String> levelDropdown = new ComboBox<>();
+    // Separate dropdowns
+    private ComboBox<String> pauseLevelDropdown;
+    private ComboBox<String> endLevelDropdown;
 
     public MenuView(Game game) {
         this.game = game;
@@ -37,7 +38,6 @@ public class MenuView extends HBox {
 
         // ================= HUD =================
         ImageView menuButton = createMenuButton();
-
         menuButton.setOnMouseClicked(e -> {
             if (game.getGameLoop() != null) game.getGameLoop().stop();
             pauseOverlay.setVisible(true);
@@ -60,31 +60,6 @@ public class MenuView extends HBox {
         );
 
         getChildren().addAll(menuButton, scoreLabel, messageLabel);
-
-        // ================= Initialize Level Dropdown =================
-        levelDropdown.getItems().addAll("Level 1", "Level 2", "Level 3", "Level 4");
-        levelDropdown.setValue("Level 1");
-        levelDropdown.setPrefWidth(150);
-        levelDropdown.setStyle("-fx-font-size: 18px;");
-        levelDropdown.setOnAction(e -> {
-            // Load selected level
-            switch (levelDropdown.getValue()) {
-                case "Level 1" -> game.loadLevel("levels/level1.txt");
-                case "Level 2" -> game.loadLevel("levels/level2.txt");
-                case "Level 3" -> game.loadLevel("levels/level3.txt");
-                case "Level 4" -> game.loadLevel("levels/level4.txt");
-            }
-
-            if (game.getGameLoop() != null) game.getGameLoop().stop();
-            game.getGameView().redraw();
-
-            // Show start overlay for new level
-            pauseOverlay.setVisible(false);
-            endOverlay.setVisible(false);
-            startOverlay.setVisible(true);
-
-            update();
-        });
 
         // ================= Overlays =================
         startOverlay = createStartOverlay();
@@ -145,16 +120,16 @@ public class MenuView extends HBox {
     }
 
     // =========================================================
-    // Pause/Menu Overlay
+    // Pause Overlay
     // =========================================================
     private StackPane createPauseOverlay() {
         StackPane overlay = baseOverlay(0.6);
 
-        // ================= Speed slider with label =================
+        // ================= Speed slider =================
         Label speedLabel = new Label("Game Speed:");
         speedLabel.setStyle("-fx-font-size: 24px; -fx-text-fill: white;");
 
-        Slider speedSlider = new Slider(50, 500, game.getGameLoop() != null ? game.getGameLoop().getKeyFrames().get(0).getTime().toMillis() : 200);
+        Slider speedSlider = new Slider(50, 500, game.getGameLoop() != null ? game.getGameLoop().getKeyFrames().get(0).getTime().toMillis() : 200); // normal min < max
         speedSlider.setShowTickLabels(true);
         speedSlider.setShowTickMarks(true);
         speedSlider.setMajorTickUnit(100);
@@ -162,9 +137,17 @@ public class MenuView extends HBox {
         speedSlider.setPrefWidth(250);
         speedSlider.setFocusTraversable(false);
 
-        // Wrap label + slider in HBox
+        // Invert the value when updating game speed
+        speedSlider.valueProperty().addListener((obs, oldVal, newVal) ->
+            game.setGameSpeed(550 - newVal.intValue()) // 550 = 50 + 500
+        );
+
+
         HBox speedBox = new HBox(10, speedLabel, speedSlider);
         speedBox.setAlignment(Pos.CENTER);
+
+        // ================= Level dropdown =================
+        pauseLevelDropdown = createLevelDropdown();
 
         Label resume = menuLabel("Resume", () -> {
             overlay.setVisible(false);
@@ -174,7 +157,7 @@ public class MenuView extends HBox {
 
         Label quit = menuLabel("Quit", () -> System.exit(0));
 
-        VBox box = new VBox(20, levelDropdown, speedBox, resume, quit);
+        VBox box = new VBox(20, pauseLevelDropdown, speedBox, resume, quit);
         box.setAlignment(Pos.CENTER);
 
         overlay.getChildren().add(box);
@@ -200,29 +183,43 @@ public class MenuView extends HBox {
 
         Label quit = menuLabel("Quit", () -> System.exit(0));
 
-        // Move shared levelDropdown into end overlay dynamically
-        VBox box = new VBox(20, endLabel, restart, quit);
+        // ================= Level dropdown =================
+        endLevelDropdown = createLevelDropdown();
+
+        VBox box = new VBox(20, endLabel, endLevelDropdown, restart, quit);
         box.setAlignment(Pos.CENTER);
 
         overlay.getChildren().add(box);
         overlay.setVisible(false);
-
         return overlay;
     }
 
     // =========================================================
-    // Public API for End Overlay
+    // Level dropdown factory (used for both overlays)
     // =========================================================
-    public void showEndOverlay(String message) {
-        endLabel.setText(message);
+    private ComboBox<String> createLevelDropdown() {
+        ComboBox<String> dropdown = new ComboBox<>();
+        dropdown.getItems().addAll("Level 1", "Level 2", "Level 3", "Level 4");
+        dropdown.setValue("Level 1");
+        dropdown.setPrefWidth(150);
+        dropdown.setStyle("-fx-font-size: 18px;");
+        dropdown.setOnAction(e -> {
+            switch (dropdown.getValue()) {
+                case "Level 1" -> game.loadLevel("levels/level1.txt");
+                case "Level 2" -> game.loadLevel("levels/level2.txt");
+                case "Level 3" -> game.loadLevel("levels/level3.txt");
+                case "Level 4" -> game.loadLevel("levels/level4.txt");
+            }
 
-        // Move shared levelDropdown from pauseOverlay into end overlay
-        VBox endBox = (VBox) endOverlay.getChildren().get(0);
-        if (!endBox.getChildren().contains(levelDropdown)) {
-            endBox.getChildren().add(1, levelDropdown); // insert after endLabel
-        }
+            if (game.getGameLoop() != null) game.getGameLoop().stop();
+            game.getGameView().redraw();
 
-        endOverlay.setVisible(true);
+            startOverlay.setVisible(true);   // ready to start new level
+            pauseOverlay.setVisible(false);
+            endOverlay.setVisible(false);
+            update();
+        });
+        return dropdown;
     }
 
     // =========================================================
@@ -246,11 +243,16 @@ public class MenuView extends HBox {
     }
 
     // =========================================================
-    // Public API for HUD
+    // Public API
     // =========================================================
     public StackPane getStartOverlay() { return startOverlay; }
     public StackPane getPauseOverlay() { return pauseOverlay; }
     public StackPane getEndOverlay() { return endOverlay; }
+
+    public void showEndOverlay(String message) {
+        endLabel.setText(message);
+        endOverlay.setVisible(true);
+    }
 
     public void update() {
         Player player = game.getBoard().getPlayer();
