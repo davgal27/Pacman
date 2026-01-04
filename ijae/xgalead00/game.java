@@ -56,7 +56,7 @@ public class Game {
         stage.setTitle("Pacman");
         stage.setScene(scene);
         stage.show();
-        loadLevel("levels/level1.txt");  // prepare board
+        loadLevel("ijae/xgalead00/levels/level1.txt");  // prepare board
         gameView.redraw();               // draw paused game
 
     }

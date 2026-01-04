@@ -6,11 +6,27 @@ import javafx.geometry.Pos;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.application.Platform;
+
+
+// Text editor
+import javafx.scene.control.TextArea;
+import javafx.scene.control.Button;
+import javafx.stage.Stage;
+import javafx.scene.Scene;
+import javafx.geometry.Insets;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+
 
 public class MenuView extends HBox {
 
@@ -157,7 +173,10 @@ public class MenuView extends HBox {
 
         Label quit = menuLabel("Quit", () -> System.exit(0));
 
-        VBox box = new VBox(20, pauseLevelDropdown, speedBox, resume, quit);
+        Label createLevel = menuLabel("Create Level", this::openLevelEditor);
+
+        VBox box = new VBox(20, pauseLevelDropdown, speedBox, createLevel, resume, quit);
+
         box.setAlignment(Pos.CENTER);
 
         overlay.getChildren().add(box);
@@ -199,28 +218,136 @@ public class MenuView extends HBox {
     // =========================================================
     private ComboBox<String> createLevelDropdown() {
         ComboBox<String> dropdown = new ComboBox<>();
-        dropdown.getItems().addAll("Level 1", "Level 2", "Level 3", "Level 4");
-        dropdown.setValue("Level");
+
+        // Internal levels
+        String[] internalLevels = {"Level 1", "Level 2", "Level 3", "Level 4"};
+        for (String lvl : internalLevels) {
+            dropdown.getItems().add(lvl);
+        }
+
+        // Load custom levels
+        File dir = new File("custom_levels");
+        if (dir.exists() && dir.isDirectory()) {
+            for (File f : dir.listFiles()) {
+                if (f.getName().startsWith("custom") && f.getName().endsWith(".txt")) {
+                    String name = f.getName().replace(".txt", "");
+                    name = name.substring(0, 1).toUpperCase() + name.substring(1);
+                    dropdown.getItems().add(name.replaceAll("custom", "Custom "));
+                }
+            }
+        }
+
         dropdown.setPrefWidth(150);
         dropdown.setStyle("-fx-font-size: 18px;");
+        dropdown.setPromptText("Level");
+
+        // =================== CUSTOM BUTTON CELL ===================
+        // This forces the button (visible part) to always show "Level"
+        dropdown.setButtonCell(new javafx.scene.control.ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText("Level"); // <-- ALWAYS shows "Level"
+            }
+        });
+
+        // Handle selection normally
         dropdown.setOnAction(e -> {
-            switch (dropdown.getValue()) {
-                case "Level 1" -> game.loadLevel("levels/level1.txt");
-                case "Level 2" -> game.loadLevel("levels/level2.txt");
-                case "Level 3" -> game.loadLevel("levels/level3.txt");
-                case "Level 4" -> game.loadLevel("levels/level4.txt");
+            String value = dropdown.getValue();
+            if (value == null) return;
+
+            try {
+                if (value.startsWith("Custom")) {
+                    int id = Integer.parseInt(value.replaceAll("\\D", ""));
+                    game.loadLevel("custom_levels/custom" + id + ".txt");
+                } else {
+                    String path = switch (value) {
+                        case "Level 1" -> "ijae/xgalead00/levels/level1.txt";
+                        case "Level 2" -> "ijae/xgalead00/levels/level2.txt";
+                        case "Level 3" -> "ijae/xgalead00/levels/level3.txt";
+                        case "Level 4" -> "ijae/xgalead00/levels/level4.txt";
+                        default -> throw new IllegalArgumentException("Unknown level: " + value);
+                    };
+                    game.loadLevel(path);
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
 
             if (game.getGameLoop() != null) game.getGameLoop().stop();
             game.getGameView().redraw();
 
-            startOverlay.setVisible(true);   // ready to start new level
+            // Show start overlay and hide others
+            startOverlay.setVisible(true);
             pauseOverlay.setVisible(false);
             endOverlay.setVisible(false);
             update();
         });
+
         return dropdown;
     }
+
+    // =========================================================
+    // Level Editor
+    // =========================================================
+    private void openLevelEditor() {
+        Stage stage = new Stage();
+
+        TextArea editor = new TextArea();
+        editor.setPrefSize(400, 300);
+
+        // Starter template (VALID LEVEL)
+        editor.setText(
+            "3 4\n" +
+            "P.KW\n" +
+            "WWoo\n" +
+            "WG.o\n"
+        );
+
+        Button save = new Button("Save Level");
+        save.setOnAction(e -> {
+            saveLevelToFile(editor.getText());
+            stage.close();
+        });
+
+        VBox box = new VBox(10, editor, save);
+        box.setPadding(new Insets(10));
+        box.setAlignment(Pos.CENTER);
+
+        stage.setScene(new Scene(box));
+        stage.setTitle("Create Level");
+        stage.show();
+    }
+
+    private void saveLevelToFile(String content) {
+        try {
+            // External folder for custom levels (writable even in JAR)
+            File dir = new File("custom_levels");
+            if (!dir.exists()) dir.mkdir();
+
+            // Auto-number custom levels
+            int id = 1;
+            for (File f : dir.listFiles()) {
+                if (f.getName().startsWith("custom")) id++;
+            }
+
+            File file = new File(dir, "custom" + id + ".txt");
+
+            try (FileWriter writer = new FileWriter(file)) {
+                writer.write(content);
+            }
+
+            // Add new level to dropdowns
+            String levelName = "Custom " + id;
+            pauseLevelDropdown.getItems().add(levelName);
+            endLevelDropdown.getItems().add(levelName);
+
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+
 
     // =========================================================
     // Helpers
@@ -251,6 +378,11 @@ public class MenuView extends HBox {
 
     public void showEndOverlay(String message) {
         endLabel.setText(message);
+        // Force the dropdown to no selection so any click triggers reload
+        // Clear selection safely
+        endLevelDropdown.getSelectionModel().clearSelection();
+        endLevelDropdown.setValue(null);
+
         endOverlay.setVisible(true);
     }
 

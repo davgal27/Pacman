@@ -10,6 +10,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileReader;
+
+
 
 public class Board {
     private Tiles[][] tiles;
@@ -23,18 +27,31 @@ public class Board {
     private final List<Ghost> ghosts = new ArrayList<>();
 
     public void loadLevel(String path) throws IOException {
-        try (BufferedReader br = new BufferedReader(
-            new InputStreamReader(Board.class.getResourceAsStream(path))
-            )) {
+        BufferedReader br = null;
 
+        try {
+            if (path.startsWith("custom_levels")) {
+                // External file on disk
+                File file = new File(path);
+                if (!file.exists()) throw new IOException("Custom level file not found: " + path);
+                br = new BufferedReader(new FileReader(file));
+            } else {
+                // Internal resource in JAR
+                var stream = Board.class.getResourceAsStream("/" + path);
+                if (stream == null) throw new IOException("Internal level resource not found: " + path);
+                br = new BufferedReader(new InputStreamReader(stream));
+            }
+
+            // --- Read dimensions ---
             String[] dims = br.readLine().split("\\s+");
             rows = Integer.parseInt(dims[0]);
             cols = Integer.parseInt(dims[1]);
 
             tiles = new Tiles[rows][cols];
             ghosts.clear();
-            player = null; // reset player
+            player = null;
 
+            // --- Read tiles ---
             for (int y = 0; y < rows; y++) {
                 String line = br.readLine();
                 for (int x = 0; x < cols; x++) {
@@ -45,28 +62,27 @@ public class Board {
                         case '.' -> tiles[y][x] = Tiles.EMPTY;
                         case 'o' -> tiles[y][x] = Tiles.POINT;
                         case 'K' -> tiles[y][x] = Tiles.KEY;
-
                         case 'P' -> {
                             tiles[y][x] = Tiles.EMPTY;
                             player = new Player(x, y, Assets.PACMAN_FRAMES);
-                        
                             player.setOnKeyCollected(() -> {
-                                for (Ghost ghost : ghosts) {
-                                    ghost.enraged();
-                                }
+                                for (Ghost ghost : ghosts) ghost.enraged();
                             });
                         }
                         case 'C' -> {
                             tiles[y][x] = Tiles.EMPTY;
                             ghosts.add(new Ghost(x, y, Assets.GHOST_FRAMES, Assets.GHOST_ENRAGED_FRAMES));
                         }
-
                         default -> tiles[y][x] = Tiles.EMPTY;
                     }
                 }
             }
+        } finally {
+            if (br != null) br.close();
         }
     }
+
+
 
     public boolean IsAccessible(int x, int y) {
         if (y < 0 || y >= rows || x < 0 || x >= cols) return false;
